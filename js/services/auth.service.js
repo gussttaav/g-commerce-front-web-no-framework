@@ -1,5 +1,4 @@
 import { ApiService } from './api.service.js';
-import { UiUtils } from '../utils/ui.utils.js';
 
 /**
  * Service to handle authentication
@@ -24,32 +23,19 @@ class AuthService {
      * @returns {Promise} - Login response
      */
     static async login(email, password) {
-        UiUtils.showSpinner();
         try {
-            const response = await fetch(`${ApiService.API_URL}/usuarios/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email, password })
-            });
-
-            if (!response.ok) {
-                let errorMsg = "Login failed. Try again later!";
-                if(response.status === 401){
-                    errorMsg = "Invalid password";
-                }
-                if(response.status === 404){
-                    errorMsg = "User not found";
-                }
-                
-                throw new Error(errorMsg);
-            }
-
-            const data = await response.json();
+            const data = await ApiService.post('/usuarios/login', { email, password }, false);
             this.setAuthData(email, password, data);
-        } finally {
-            UiUtils.hideSpinner();
+            return data;
+        } catch (error) {
+            let errorMsg = "Login failed. Try again later!";
+            
+            // Get the actual error message
+            if (error.message) {
+                errorMsg = error.message;
+            }
+            
+            throw new Error(errorMsg);
         }
     }
 
@@ -80,25 +66,7 @@ class AuthService {
      * @returns {Promise} - Registration response
      */
     static async register(userData) {
-        UiUtils.showSpinner();
-        try {
-            const response = await fetch(`${ApiService.API_URL}/usuarios/registro`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(userData)
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Registration failed');
-            }
-
-            return response.json();
-        } finally {
-            UiUtils.hideSpinner();
-        }
+        return ApiService.post('/usuarios/registro', userData, false);
     }
 
     /**

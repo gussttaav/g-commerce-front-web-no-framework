@@ -36,16 +36,17 @@ class UserService {
     }
 
     /**
-     * Lists all users (admin only)
+     * Lists all users (admin only) with pagination
      * - Admin privilege required
      * - Returns all system users
      * - Includes user details
      * - Used in admin panel
      * - Shows registration dates
-     * @returns {Promise<Array>} List of users
+     * @param {Object} params - Pagination parameters (page, size, sort, direction)
+     * @returns {Promise<Object>} Paginated list of users
      */
-    static async listUsers() {
-        return ApiService.get('/usuarios/admin/listar');
+    static async listUsers(params = {}) {
+        return ApiService.get('/usuarios/admin/listar', params);
     }
 
     /**

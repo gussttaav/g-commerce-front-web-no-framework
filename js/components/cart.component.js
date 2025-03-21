@@ -14,8 +14,38 @@ class CartComponent {
     constructor() {
         this.selectedProducts = new Map();
         document.addEventListener('DOMContentLoaded', () => {
+            this.loadCartFromStorage();
             this.initializeEventListeners();
         });
+    }
+
+    /**
+     * Loads cart data from localStorage
+     * Called on initialization
+     * @private
+     */
+    loadCartFromStorage() {
+        const storedCart = localStorage.getItem('cartItems');
+        if (storedCart) {
+            const cartItems = JSON.parse(storedCart);
+            this.selectedProducts = new Map(cartItems);
+            this.updateCartCount();
+        }
+    }
+
+    /**
+     * Saves cart data to localStorage
+     * Called after any cart modification
+     * @private
+     */
+    saveCartToStorage() {
+        try {
+            // Convert Map to array of entries for JSON serialization
+            const cartData = JSON.stringify(Array.from(this.selectedProducts.entries()));
+            localStorage.setItem('cartItems', cartData);
+        } catch (e) {
+            console.error('Error saving cart to storage:', e);
+        }
     }
 
     /**
@@ -46,6 +76,7 @@ class CartComponent {
             });
         }
 
+        this.saveCartToStorage();
         this.updateCartCount();
     }
 
@@ -69,6 +100,7 @@ class CartComponent {
                 ...item,
                 quantity: newQuantity
             });
+            this.saveCartToStorage();
             this.updateCartCount();
         }
     }
@@ -83,6 +115,7 @@ class CartComponent {
      */
     removeProduct(productId) {
         this.selectedProducts.delete(productId);
+        this.saveCartToStorage();
         this.updateCartCount();
     }
 
@@ -164,6 +197,7 @@ class CartComponent {
      */
     clear() {
         this.selectedProducts.clear();
+        localStorage.removeItem('cartItems');
         this.updateCartCount();
     }
 
@@ -218,4 +252,3 @@ class CartComponent {
 }
 
 export const cart = new CartComponent();
-window.cart = cart; 

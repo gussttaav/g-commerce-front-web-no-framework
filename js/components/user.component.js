@@ -1,6 +1,7 @@
 import { AuthService } from '../services/auth.service.js';
 import { UserService } from '../services/user.service.js';
 import { UiUtils } from '../utils/ui.utils.js';
+import { PaginationUtils } from '../utils/pagination.utils.js';
 
 /**
  * Component to handle user-related UI and operations
@@ -13,6 +14,10 @@ import { UiUtils } from '../utils/ui.utils.js';
  */
 class UserComponent {
     constructor() {
+        this.pagination = new PaginationUtils();
+        this.pagination.sortField = 'email';
+        this.pagination.sortDirection = 'ASC';
+        this.pagination.onPageChange = () => this.loadUsers();
         this.initializeEventListeners();
     }
 
@@ -22,6 +27,7 @@ class UserComponent {
      * - Password change form
      * - Admin user management
      * - Role change buttons
+     * - Pagination buttons
      */
     initializeEventListeners() {
         // Static elements that exist on page load
@@ -29,6 +35,39 @@ class UserComponent {
         document.getElementById('passwordForm')?.addEventListener('submit', this.changePassword.bind(this));
         document.getElementById('saveUserBtn')?.addEventListener('click', () => this.saveUser());
         document.getElementById('addAdminUserBtn')?.addEventListener('click', () => this.showAddUserModal());
+
+        // Pagination controls
+        document.getElementById('userPageSize')?.addEventListener('change', (e) => {
+            this.pagination.pageSize = parseInt(e.target.value);
+            this.pagination.currentPage = 0;
+            this.loadUsers();
+        });
+
+        document.getElementById('userSortField')?.addEventListener('change', (e) => {
+            this.pagination.sortField = e.target.value;
+            this.pagination.currentPage = 0;
+            this.loadUsers();
+        });
+
+        document.getElementById('userSortDirection')?.addEventListener('change', (e) => {
+            this.pagination.sortDirection = e.target.value;
+            this.pagination.currentPage = 0;
+            this.loadUsers();
+        });
+
+        document.getElementById('prevPageBtnUsers')?.addEventListener('click', () => {
+            if (this.pagination.currentPage > 0) {
+                this.pagination.currentPage--;
+                this.loadUsers();
+            }
+        });
+
+        document.getElementById('nextPageBtnUsers')?.addEventListener('click', () => {
+            if (this.pagination.currentPage < this.pagination.totalPages - 1) {
+                this.pagination.currentPage++;
+                this.loadUsers();
+            }
+        });
     }
 
     /**
@@ -121,8 +160,16 @@ class UserComponent {
      */
     async loadUsers() {
         try {
-            const users = await UserService.listUsers();
-            this.displayUsers(users);
+            const response = await UserService.listUsers(this.pagination.getParams());
+            this.pagination.updateFromResponse(response);
+            this.displayUsers(response.content);
+            this.pagination.updatePaginationInfo(
+                'usersRange',
+                'usersTotal',
+                'prevPageBtnUsers',
+                'nextPageBtnUsers',
+                'pageNumbersUsers'
+            );
         } catch (error) {
             UiUtils.showError('Error loading users: ' + error.message);
         }

@@ -1,6 +1,7 @@
 import { ProductService } from '../services/product.service.js';
 import { UiUtils } from '../utils/ui.utils.js';
 import { cart } from './cart.component.js';
+import { PaginationUtils } from '../utils/pagination.utils.js';
 
 /**
  * Component to handle product-related UI and operations
@@ -15,23 +16,181 @@ import { cart } from './cart.component.js';
 class ProductComponent {
     constructor() {
         this.products = [];
+        this.selectedProducts = new Set();
+        this.searchTerm = '';
+        
+        // Initialize pagination for admin view
+        this.adminPagination = new PaginationUtils();
+        this.adminPagination.sortField = 'nombre';
+        this.adminPagination.onPageChange = () => this.loadProducts(this.getProductStatusFilter());
+        
+        // Initialize pagination for user view
+        this.userPagination = new PaginationUtils();
+        this.userPagination.sortField = 'nombre';
+        this.userPagination.onPageChange = () => this.loadProducts(this.getProductStatusFilter());
+        
         this.initializeEventListeners();
     }
 
     /**
-     * Initializes product-related event listeners
-     * - Form submissions
-     * - Modal controls
-     * - Status toggle buttons
-     * - Add to cart buttons
-     * - Called on component creation
+     * Initializes all event listeners for the component
+     * Handles both admin and user interface events
      * @private
      */
     initializeEventListeners() {
+        this.initializeFilterListeners();
+        this.initializePaginationListeners();
+        this.initializeSearchListeners();
+        this.initializeAdminActionListeners();
+    }
+
+    /**
+     * Initializes filter-related event listeners
+     * @private
+     */
+    initializeFilterListeners() {
+        // Status filter (admin only)
         document.getElementById('statusFilter')?.addEventListener('change', (e) => {
+            this.adminPagination.currentPage = 0;
             this.loadProducts(e.target.value);
         });
-        // Product form submission
+
+        // Sort fields
+        document.getElementById('sortField')?.addEventListener('change', (e) => {
+            this.adminPagination.sortField = e.target.value;
+            this.adminPagination.currentPage = 0;
+            this.loadProducts(this.getProductStatusFilter());
+        });
+
+        document.getElementById('sortFieldUser')?.addEventListener('change', (e) => {
+            this.userPagination.sortField = e.target.value;
+            this.userPagination.currentPage = 0;
+            this.loadProducts(this.getProductStatusFilter());
+        });
+
+        // Sort direction
+        document.getElementById('sortDirection')?.addEventListener('change', (e) => {
+            this.adminPagination.sortDirection = e.target.value;
+            this.adminPagination.currentPage = 0;
+            this.loadProducts(this.getProductStatusFilter());
+        });
+
+        document.getElementById('sortDirectionUser')?.addEventListener('change', (e) => {
+            this.userPagination.sortDirection = e.target.value;
+            this.userPagination.currentPage = 0;
+            this.loadProducts(this.getProductStatusFilter());
+        });
+
+        // Page size
+        document.getElementById('pageSize')?.addEventListener('change', (e) => {
+            this.adminPagination.pageSize = parseInt(e.target.value);
+            this.adminPagination.currentPage = 0;
+            this.loadProducts(this.getProductStatusFilter());
+        });
+
+        document.getElementById('pageSizeUser')?.addEventListener('change', (e) => {
+            this.userPagination.pageSize = parseInt(e.target.value);
+            this.userPagination.currentPage = 0;
+            this.loadProducts(this.getProductStatusFilter());
+        });
+
+        // Category filters (user only)
+        document.querySelectorAll('.categories-filter button')?.forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.categories-filter button').forEach(btn => 
+                    btn.classList.remove('active'));
+                button.classList.add('active');
+                this.loadProducts(this.getProductStatusFilter());
+            });
+        });
+    }
+
+    /**
+     * Initializes pagination-related event listeners
+     * @private
+     */
+    initializePaginationListeners() {
+        // Previous page - Admin
+        document.getElementById('prevPageBtn')?.addEventListener('click', () => {
+            if (this.adminPagination.currentPage > 0) {
+                this.adminPagination.currentPage--;
+                this.loadProducts(this.getProductStatusFilter());
+            }
+        });
+
+        // Next page - Admin
+        document.getElementById('nextPageBtn')?.addEventListener('click', () => {
+            if (this.adminPagination.currentPage < this.adminPagination.totalPages - 1) {
+                this.adminPagination.currentPage++;
+                this.loadProducts(this.getProductStatusFilter());
+            }
+        });
+
+        // Previous page - User
+        document.getElementById('prevPageBtnUser')?.addEventListener('click', () => {
+            if (this.userPagination.currentPage > 0) {
+                this.userPagination.currentPage--;
+                this.loadProducts(this.getProductStatusFilter());
+            }
+        });
+
+        // Next page - User
+        document.getElementById('nextPageBtnUser')?.addEventListener('click', () => {
+            if (this.userPagination.currentPage < this.userPagination.totalPages - 1) {
+                this.userPagination.currentPage++;
+                this.loadProducts(this.getProductStatusFilter());
+            }
+        });
+    }
+
+    /**
+     * Initializes search-related event listeners
+     * @private
+     */
+    initializeSearchListeners() {
+        ['searchAdmin', 'searchUser'].forEach(id => {
+            const searchInput = document.getElementById(id);
+            if (searchInput) {
+                // Debounce search input
+                let timeout;
+                searchInput.addEventListener('input', (e) => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => {
+                        this.searchTerm = e.target.value;
+                        const pagination = id === 'searchAdmin' ? this.adminPagination : this.userPagination;
+                        pagination.currentPage = 0; // Reset to first page on search
+                        this.loadProducts(this.getProductStatusFilter());
+                    }, 300);
+                });
+
+                // Limpiar búsqueda cuando el campo esté vacío
+                searchInput.addEventListener('search', (e) => {
+                    if (e.target.value === '') {
+                        this.searchTerm = '';
+                        const pagination = id === 'searchAdmin' ? this.adminPagination : this.userPagination;
+                        pagination.currentPage = 0;
+                        this.loadProducts(this.getProductStatusFilter());
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * Initializes admin-specific action listeners
+     * @private
+     */
+    initializeAdminActionListeners() {
+        // Select all products
+        document.getElementById('selectAllProducts')?.addEventListener('change', (e) => {
+            const checkboxes = document.querySelectorAll('#adminProductsList input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = e.target.checked;
+                this.toggleProductSelection(checkbox.dataset.productId, e.target.checked);
+            });
+        });
+
+        // Product form
         document.getElementById('productForm')?.addEventListener('submit', (e) => {
             e.preventDefault();
             this.saveProduct();
@@ -41,6 +200,51 @@ class ProductComponent {
         document.getElementById('addProductButton')?.addEventListener('click', () => {
             this.showEditModal();
         });
+
+        // Delete confirmation
+        document.getElementById('confirmDeleteBtn')?.addEventListener('click', () => {
+            this.deleteSelectedProducts();
+        });
+    }
+
+    /**
+     * Toggles selection of a product in admin view
+     * @param {string} productId - Product ID
+     * @param {boolean} selected - Whether the product is selected
+     * @private
+     */
+    toggleProductSelection(productId, selected) {
+        if (selected) {
+            this.selectedProducts.add(productId);
+        } else {
+            this.selectedProducts.delete(productId);
+        }
+        this.updateBulkActionButtons();
+    }
+
+    /**
+     * Updates the state of bulk action buttons based on selection
+     * @private
+     */
+    updateBulkActionButtons() {
+        const hasSelection = this.selectedProducts.size > 0;
+        // Update bulk action buttons state here
+    }
+
+    /**
+     * Gets the current product status filter
+     * - For regular users, always returns 'ACTIVE'
+     * - For admin users, gets the value from status selector
+     * - If no value is selected, defaults to 'ALL'
+     * - Used in pagination and sorting to maintain filter state
+     * @returns {string} Filter status ('ACTIVE', 'INACTIVE', 'ALL')
+     */
+    getProductStatusFilter() {
+        let productStatusFilter = 'ACTIVE';
+        if (localStorage.getItem('userRole') === 'ADMIN') {
+            productStatusFilter = document.getElementById('statusFilter')?.value || 'ALL';
+        }
+        return productStatusFilter;
     }
 
     /**
@@ -54,11 +258,39 @@ class ProductComponent {
      */
     async loadProducts(status = 'ACTIVE') {
         try {
-            this.products = await ProductService.getProducts(status);
-            if (localStorage.getItem('userRole') === 'ADMIN') {
+            const isAdmin = localStorage.getItem('userRole') === 'ADMIN';
+            const pagination = isAdmin ? this.adminPagination : this.userPagination;
+            const userAuthenticated = localStorage.getItem('userEmail') ? true : false;
+            
+            const response = await ProductService.getProducts({
+                status,
+                ...pagination.getParams(),
+                searchText: this.searchTerm,
+                authenticated: userAuthenticated
+            });
+
+            this.products = response.content;
+            pagination.updateFromResponse(response);
+            
+            if (isAdmin) {
                 this.displayAdminProducts();
             } else {
                 this.displayUserProducts();
+            }
+
+            // Update pagination UI
+            pagination.updatePaginationInfo(
+                isAdmin ? 'itemsRange' : 'itemsRangeUser',
+                isAdmin ? 'totalItems' : 'totalItemsUser',
+                isAdmin ? 'prevPageBtn' : 'prevPageBtnUser',
+                isAdmin ? 'nextPageBtn' : 'nextPageBtnUser',
+                isAdmin ? 'pageNumbers' : 'pageNumbersUser'
+            );
+
+            // Actualizar el estado de los campos de búsqueda
+            const searchInput = document.getElementById(isAdmin ? 'searchAdmin' : 'searchUser');
+            if (searchInput) {
+                searchInput.value = this.searchTerm;
             }
         } catch (error) {
             UiUtils.showError('Error loading products: ' + error.message);
@@ -70,10 +302,8 @@ class ProductComponent {
      * - Creates product cards
      * - Shows prices and descriptions
      * - Adds cart controls
-     * - Handles empty states
      * - Responsive grid layout
      * @private
-     * @param {Array} products - List of products to display
      */
     displayUserProducts() {
         const container = document.getElementById('productsList');
@@ -83,46 +313,53 @@ class ProductComponent {
             const card = document.createElement('div');
             card.className = 'col-md-4 mb-4';
             
-            const quantityInput = document.createElement('input');
-            quantityInput.type = 'number';
-            quantityInput.className = 'form-control form-control-sm w-25 me-2';
-            quantityInput.value = '1';
-            quantityInput.min = '1';
-
-            const addButton = document.createElement('button');
-            addButton.className = 'btn btn-primary';
-            addButton.textContent = 'Add to Cart';
-            addButton.addEventListener('click', () => this.addToCart(product.id, parseInt(quantityInput.value)));
-
-            const cardHtml = `
-                <div class="card">
-                    <div class="card-body">
+            card.innerHTML = `
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
                         <h5 class="card-title">${product.nombre}</h5>
-                        <p class="card-text">${product.descripcion || 'No description available'}</p>
-                        <p class="card-text">$${product.precio}</p>
-                        <div class="d-flex align-items-center"></div>
+                        <p class="card-text flex-grow-1">${product.descripcion || 'No description available'}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <h6 class="price-tag mb-0">$${product.precio.toFixed(2)}</h6>
+                            <div class="input-group input-group-sm"">
+                                <button class="btn btn-outline-secondary quantity-btn" data-action="decrease">-</button>
+                                <input type="number" class="form-control text-center quantity-input" value="1" min="1" max="99" readonly>
+                                <button class="btn btn-outline-secondary quantity-btn" data-action="increase">+</button>
+                                <button class="btn btn-primary add-to-cart-btn" data-product-id="${product.id}">
+                                    <i class="bi bi-cart-plus"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
 
-            card.innerHTML = cardHtml;
-            const controlsContainer = card.querySelector('.d-flex');
-            controlsContainer.appendChild(quantityInput);
-            controlsContainer.appendChild(addButton);
+            // Agregar event listeners después de crear el elemento
+            const quantityInput = card.querySelector('.quantity-input');
+            const quantityBtns = card.querySelectorAll('.quantity-btn');
+            const addToCartBtn = card.querySelector('.add-to-cart-btn');
+
+            quantityBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const currentValue = parseInt(quantityInput.value);
+                    if (btn.dataset.action === 'increase' && currentValue < 99) {
+                        quantityInput.value = currentValue + 1;
+                    } else if (btn.dataset.action === 'decrease' && currentValue > 1) {
+                        quantityInput.value = currentValue - 1;
+                    }
+                });
+            });
+
+            addToCartBtn.addEventListener('click', () => {
+                this.quickAddToCart(product.id, addToCartBtn);
+            });
 
             container.appendChild(card);
         });
     }
 
     /**
-     * Displays products in admin view
-     * - Creates product table
-     * - Shows all product details
-     * - Adds edit/status controls
-     * - Includes creation date
-     * - Status indicators
+     * Displays products in admin view with enhanced table
      * @private
-     * @param {Array} products - List of products to display
      */
     displayAdminProducts() {
         const tbody = document.getElementById('adminProductsList');
@@ -130,32 +367,36 @@ class ProductComponent {
 
         this.products.forEach(product => {
             const row = document.createElement('tr');
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.className = 'form-check-input';
-            checkbox.checked = product.activo;
-            checkbox.addEventListener('change', () => this.toggleStatus(product.id, checkbox.checked));
-
-            const editButton = document.createElement('button');
-            editButton.className = 'btn btn-link p-0 me-2';
-            editButton.innerHTML = '<i class="bi bi-pencil-square"></i>';
-            editButton.addEventListener('click', () => {
-                this.showEditModal(product.id);
-            });
-
             row.innerHTML = `
                 <td>${product.nombre}</td>
                 <td>${product.descripcion || 'No description'}</td>
                 <td>$${product.precio}</td>
                 <td>
-                    <div class="form-check"></div>
+                    <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input status-toggle" 
+                               data-product-id="${product.id}"
+                               ${product.activo ? 'checked' : ''}>
+                    </div>
                 </td>
-                <td></td>
+                <td>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-primary edit-product" data-product-id="${product.id}">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    </div>
+                </td>
             `;
 
-            // Add checkbox and button to their cells
-            row.querySelector('.form-check').appendChild(checkbox);
-            row.querySelector('td:last-child').appendChild(editButton);
+            // Agregar event listeners
+            const statusToggle = row.querySelector('.status-toggle');
+            statusToggle.addEventListener('change', (e) => {
+                this.toggleStatus(product.id, Boolean(e.target.checked));
+            });
+
+            const editButton = row.querySelector('.edit-product');
+            editButton.addEventListener('click', () => {
+                this.showEditModal(product.id);
+            });
 
             tbody.appendChild(row);
         });
@@ -241,36 +482,71 @@ class ProductComponent {
      */
     async toggleStatus(productId, isActive) {
         try {
-            await ProductService.toggleStatus(productId, isActive);
+            // Obtener el producto del array local
+            let product = this.products.find(p => p.id === productId);
+            if (!product) {
+                throw new Error('Producto no encontrado');
+            }
+            await ProductService.toggleStatus(product, isActive);
             UiUtils.showSuccess(`Product ${isActive ? 'activated' : 'deactivated'} successfully!`);
-            this.loadProducts(document.getElementById('statusFilter').value);
         } catch (error) {
             UiUtils.showError('Error updating product status: ' + error.message);
-            document.getElementById(`active-${productId}`).checked = !isActive;
+            // Encontrar el switch específico y revertir su estado
+            const statusToggle = document.querySelector(`.status-toggle[data-product-id="${productId}"]`);
+            if (statusToggle) {
+                statusToggle.checked = !isActive;
+            }
         }
     }
 
     /**
-     * Adds a product to the cart
-     * @param {number} productId - Product ID to add
-     * @param {number} quantity - Quantity to add
+     * Shows delete confirmation modal
+     * @param {number} productId - Product ID to delete
      */
-    addToCart(productId, quantity) {
+    showDeleteConfirmation(productId) {
+        this.selectedProducts.clear();
+        this.selectedProducts.add(productId);
+        const modal = new bootstrap.Modal(document.getElementById('deleteProductModal'));
+        modal.show();
+    }
+
+    /**
+     * Deletes selected products
+     * @private
+     */
+    async deleteSelectedProducts() {
+        try {
+            for (const productId of this.selectedProducts) {
+                await ProductService.deleteProduct(productId);
+            }
+            
+            UiUtils.showSuccess('Products deleted successfully');
+            this.selectedProducts.clear();
+            this.loadProducts(this.getProductStatusFilter());
+            
+            bootstrap.Modal.getInstance(document.getElementById('deleteProductModal')).hide();
+        } catch (error) {
+            UiUtils.showError('Error deleting products: ' + error.message);
+        }
+    }
+
+    /**
+     * Quick add to cart with default quantity (1)
+     * @param {number} productId - Product ID
+     * @param {HTMLElement} button - Button element that triggered the action
+     */
+    quickAddToCart(productId, button) {
         const product = this.products.find(p => p.id === productId);
-        
+        const quantityInput = button.parentElement.querySelector('.quantity-input');
+        const quantity = parseInt(quantityInput.value);
+
         try {
             cart.addProduct(product, quantity);
             UiUtils.showSuccess(`Added ${quantity} ${product.nombre} to cart`);
+            quantityInput.value = '1'; // Reset quantity
         } catch (error) {
             UiUtils.showError(error.message);
         }
-    }
-
-    /**
-     * Shows modal for adding a new product
-     */
-    showAddProductModal() {
-        this.showEditModal(); // Reuse showEditModal with no productId
     }
 }
 

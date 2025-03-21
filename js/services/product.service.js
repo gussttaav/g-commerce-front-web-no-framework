@@ -3,24 +3,45 @@ import { ApiService } from './api.service.js';
 /**
  * Service to handle product-related operations
  * Manages:
- * - Product listing with status filtering
+ * - Product listing with status filtering, pagination, and sorting
  * - Product creation
  * - Product updates
  * - Product status toggling
- * All operations require authentication
+ * All operations require authentication except getProducts
  */
 class ProductService {
     /**
-     * Fetches products based on status
+     * Fetches products based on status and pagination parameters
      * - Supports filtering by ALL, ACTIVE, INACTIVE
-     * - Returns filtered product list
+     * - Returns paginated product list
      * - Used in both user and admin views
-     * - Requires authentication
-     * @param {string} status - Product status filter ('ALL', 'ACTIVE', 'INACTIVE')
-     * @returns {Promise<Array>} List of products
+     * - No authentication required
+     * @param {Object} options - Query options
+     * @param {string} options.status - Product status filter ('ALL', 'ACTIVE', 'INACTIVE')
+     * @param {number} options.page - Page number (zero-based)
+     * @param {number} options.size - Page size
+     * @param {string} options.sort - Sort field
+     * @param {string} options.direction - Sort direction ('ASC', 'DESC')
+     * @param {string} options.searchText - Search text
+     * @returns {Promise<Object>} Paginated list of products
      */
-    static async getProducts(status = 'ACTIVE') {
-        return ApiService.get(`/productos/listar?status=${status}`);
+    static async getProducts({
+        status = 'ACTIVE',
+        page = 0,
+        size = 10,
+        sort = 'nombre',
+        direction = 'ASC',
+        searchText = '',
+        authenticated = false
+    } = {}) {
+        return ApiService.get('/productos/listar', {
+            status,
+            page,
+            size,
+            sort,
+            direction,
+            searchText
+        }, authenticated); // false indicates that authentication is not required
     }
 
     /**
@@ -54,22 +75,13 @@ class ProductService {
      * Toggles product status
      * - Switches between active/inactive
      * - Admin only operation
-     * - Fetches current product first
      * - Updates only status field
-     * - Handles product not found case
-     * @param {number} productId - Product ID
+     * @param {Object} product - The product to be updated
      * @param {boolean} isActive - New status
      * @returns {Promise<Object>} Updated product
      */
-    static async toggleStatus(productId, isActive) {
-        const product = await this.getProducts('ALL')
-            .then(products => products.find(p => p.id === productId));
-        
-        if (!product) {
-            throw new Error('Product not found');
-        }
-
-        return this.updateProduct(productId, {
+    static async toggleStatus(product, isActive) {
+        return this.updateProduct(product.id, {
             ...product,
             activo: isActive
         });

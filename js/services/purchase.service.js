@@ -4,12 +4,26 @@ import { ApiService } from './api.service.js';
  * Service to handle purchase-related operations
  * Manages:
  * - Purchase creation
- * - Purchase history retrieval
+ * - Purchase history retrieval with pagination and sorting by date
  * - Purchase data formatting
  * All operations require authentication
  * Integrates with cart data
  */
-class PurchaseService {
+export class PurchaseService {
+    /**
+     * Fetches user's purchase history
+     * - Gets all user purchases paginated
+     * - Includes purchase details
+     * - Shows product information
+     * - Includes dates and totals
+     * - Ordered by date desc
+     * @param {Object} params - Pagination parameters
+     * @returns {Promise} Purchase history data
+     */
+    static async getPurchaseHistory(params = {}) {
+        return ApiService.get('/compras/listar', params);
+    }
+
     /**
      * Creates a new purchase
      * - Validates product list
@@ -30,19 +44,4 @@ class PurchaseService {
 
         return ApiService.post('/compras/nueva', purchaseData);
     }
-
-    /**
-     * Fetches user's purchase history
-     * - Gets all user purchases
-     * - Includes purchase details
-     * - Shows product information
-     * - Includes dates and totals
-     * - Ordered by date desc
-     * @returns {Promise<Array>} List of purchases
-     */
-    static async getPurchaseHistory() {
-        return ApiService.get('/compras/listar');
-    }
-}
-
-export { PurchaseService }; 
+} 

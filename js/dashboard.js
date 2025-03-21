@@ -62,20 +62,28 @@ class DashboardController {
      * Sets up UI elements based on user role
      * - Shows/hides admin features
      * - Shows/hides user features
-     * - Manages navigation items
-     * - Controls access to sections
      * @private
      * @param {string} userRole - User's role
      */
     setupUIByRole(userRole) {
         document.querySelectorAll('.user-only').forEach(el => {
-            el.style.display = userRole === 'USER' ? 'block' : 'none';
+            if (el.classList.contains('d-flex')) {
+                el.style.setProperty("display", userRole === "USER" ? "flex" : "none", "important");
+            } else {
+                el.style.setProperty("display", userRole === "USER" ? "block" : "none", "important");
+            }
         });
-
+    
+        // Handle admin-only elements
         document.querySelectorAll('.admin-only').forEach(el => {
-            el.style.display = userRole === 'ADMIN' ? 'block' : 'none';
+            if (el.classList.contains('d-flex')) {
+                el.style.setProperty("display", userRole === "ADMIN" ? "flex" : "none", "important");
+            } else {
+                el.style.setProperty("display", userRole === "ADMIN" ? "block" : "none", "important");
+            }
         });
     }
+    
 
     /**
      * Initializes all event listeners
@@ -117,6 +125,25 @@ class DashboardController {
             document.getElementById('adminProductsLink').classList.remove('active');
             document.getElementById('adminUsersLink').classList.add('active');
             userComponent.loadUsers();
+        });
+
+        // Navbar brand (logo) click
+        document.querySelector('.navbar-brand')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            const userRole = localStorage.getItem('userRole');
+            
+            if (userRole === 'USER') {
+                // Si es usuario normal, mostrar sección de productos
+                this.showSection('products');
+                document.getElementById('purchasesLink')?.classList.remove('active');
+                document.getElementById('productsLink')?.classList.add('active');
+            } else if (userRole === 'ADMIN') {
+                // Si es administrador, mostrar sección de administración de productos
+                this.showSection('adminProducts');
+                document.getElementById('adminUsersLink')?.classList.remove('active');
+                document.getElementById('adminProductsLink')?.classList.add('active');
+                productComponent.loadProducts('ALL');
+            }
         });
 
         document.getElementById('profileLink')?.addEventListener('click', (e) => {
@@ -173,10 +200,18 @@ class DashboardController {
         };
 
         Object.values(sections).forEach(id => {
-            document.getElementById(id)?.classList.add('d-none');
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.add('d-none');
+                el.style.display = 'none';
+            }
         });
-
-        document.getElementById(sections[sectionName])?.classList.remove('d-none');
+    
+        const targetEl = document.getElementById(sections[sectionName]);
+        if (targetEl) {
+            targetEl.classList.remove('d-none');
+            targetEl.style.display = '';
+        }
     }
 
     /**

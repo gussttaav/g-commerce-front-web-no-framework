@@ -1,6 +1,7 @@
 import { PurchaseService } from '../services/purchase.service.js';
 import { UiUtils } from '../utils/ui.utils.js';
 import { cart } from './cart.component.js';
+import { PaginationUtils } from '../utils/pagination.utils.js';
 
 /**
  * Component to handle purchase-related UI and operations
@@ -13,36 +14,65 @@ import { cart } from './cart.component.js';
  */
 class PurchaseComponent {
     constructor() {
+        this.pagination = new PaginationUtils();
+        this.pagination.sortField = 'fecha';
+        this.pagination.onPageChange = () => this.loadPurchases();
         this.initializeEventListeners();
     }
 
     /**
      * Initializes purchase-related event listeners
-     * - Sets up checkout confirmation
-     * - Binds to purchase buttons
-     * - Called on component creation
      * @private
      */
     initializeEventListeners() {
-        // Add any specific purchase-related event listeners
         // Confirm purchase button
         document.getElementById('confirmPurchaseBtn')?.addEventListener('click', () => {
             this.confirmPurchase();
+        });
+
+        // Pagination controls
+        document.getElementById('purchasePageSize')?.addEventListener('change', (e) => {
+            this.pagination.pageSize = parseInt(e.target.value);
+            this.pagination.currentPage = 0;
+            this.loadPurchases();
+        });
+
+        document.getElementById('purchaseSortDirection')?.addEventListener('change', (e) => {
+            this.pagination.sortDirection = e.target.value;
+            this.pagination.currentPage = 0;
+            this.loadPurchases();
+        });
+
+        document.getElementById('prevPageBtnPurchases')?.addEventListener('click', () => {
+            if (this.pagination.currentPage > 0) {
+                this.pagination.currentPage--;
+                this.loadPurchases();
+            }
+        });
+
+        document.getElementById('nextPageBtnPurchases')?.addEventListener('click', () => {
+            if (this.pagination.currentPage < this.pagination.totalPages - 1) {
+                this.pagination.currentPage++;
+                this.loadPurchases();
+            }
         });
     }
 
     /**
      * Loads and displays purchase history
-     * - Fetches user's purchase history
-     * - Formats dates and prices
-     * - Renders in purchase table
-     * - Handles loading states
-     * - Shows errors if any
      */
     async loadPurchases() {
         try {
-            const purchases = await PurchaseService.getPurchaseHistory();
-            this.displayPurchases(purchases);
+            const purchases = await PurchaseService.getPurchaseHistory(this.pagination.getParams());
+            this.pagination.updateFromResponse(purchases);
+            this.displayPurchases(purchases.content);
+            this.pagination.updatePaginationInfo(
+                'purchasesRange',
+                'purchasesTotal',
+                'prevPageBtnPurchases',
+                'nextPageBtnPurchases',
+                'pageNumbersPurchases'
+            );
         } catch (error) {
             UiUtils.showError('Error loading purchases: ' + error.message);
         }
@@ -90,6 +120,10 @@ class PurchaseComponent {
     showCheckoutModal() {
         const detailsContainer = document.getElementById('purchaseDetails');
         const totalElement = document.getElementById('purchaseTotal');
+
+        if(detailsContainer === null || totalElement === null){
+            return;
+        }
         
         detailsContainer.innerHTML = '';
         cart.getProducts().forEach(item => {
