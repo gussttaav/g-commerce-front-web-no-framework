@@ -170,23 +170,5 @@ class AuthController {
     }
 }
 
-// Function to toggle between forms
-window.toggleForms = function() {
-    const loginForm = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
-    const loginAlert = document.getElementById('loginAlert');
-    const registerAlert = document.getElementById('registerAlert');
-
-    if (loginForm.classList.contains('d-none')) {
-        loginForm.classList.remove('d-none');
-        registerForm.classList.add('d-none');
-        loginAlert.classList.add('d-none');
-    } else {
-        loginForm.classList.add('d-none');
-        registerForm.classList.remove('d-none');
-        registerAlert.classList.add('d-none');
-    }
-};
-
 // Initialize the controller
 const auth = new AuthController();
