@@ -2,7 +2,7 @@
 
 🚀 **Live Preview Available**: [Click here to try the application](https://g-commerce-simple.vercel.app/) 🎉
 
-A simple web application for an e-commerce system, built only with HTML, JavaScript, and Bootstrap. No frameworks were used. This project consumes the Spring Boot REST API available at [G-commerce backend](https://github.com/gussttaav/springboot-projects/tree/gestion-tienda).
+A simple web application for an e-commerce system, built only with HTML, JavaScript, and Bootstrap. No frameworks were used. This project consumes the Spring Boot REST API available at [G-commerce backend](https://github.com/gussttaav/g-commerce-springboot-api).
 
 ## 🎯 Purpose
 
@@ -12,7 +12,7 @@ This project was developed for educational and learning purposes, serving as an 
 
 ### User Management
 - New user registration
-- Login with basic authentication
+- Login with token based authentication
 - User profile management
 - Password change
 - Admin panel for user management (ADMIN role)
@@ -66,12 +66,12 @@ This project was developed for educational and learning purposes, serving as an 
 
 ### Development Setup
 
-1. Ensure the backend is running, use the [docker container](https://hub.docker.com/repository/docker/gussttaav/g-commerce-backend/general) or clone the [backend repository](https://github.com/gussttaav/springboot-projects/tree/gestion-tienda) for this.
+1. Ensure the backend is running, use the [docker container](https://hub.docker.com/repository/docker/gussttaav/g-commerce-backend/general) or clone the [backend repository](https://github.com/gussttaav/g-commerce-springboot-api) for this.
 
 2. Clone this repository:
 ```bash
-git clone --branch g-commerce --single-branch https://github.com/gussttaav/web-dev-playground.git
-cd g-commerce
+git clone https://github.com/gussttaav/g-commerce-front-web-no-framework
+cd g-commerce-front-web-no-framework
 ```
 
 3. Install dependencies:

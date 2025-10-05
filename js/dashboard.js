@@ -39,16 +39,29 @@ class DashboardController {
 
     /**
      * Checks user authentication and sets up UI accordingly
-     * - Validates auth token
+     * - Validates JWT token
      * - Redirects if not authenticated
      * - Sets up user info display
      * - Configures UI based on role
      * - Called on initialization
      */
-    checkAuth() {
+    async checkAuth() {
         const token = localStorage.getItem('authToken');
         if (!token) {
             window.location.href = 'index.html';
+            return;
+        }
+
+        // Validate token with server
+        try {
+            const isValid = await AuthService.validateToken();
+            if (!isValid) {
+                AuthService.logout();
+                return;
+            }
+        } catch (error) {
+            console.error('Token validation failed:', error);
+            AuthService.logout();
             return;
         }
 
