@@ -1,6 +1,6 @@
 # G-commerce
 
-🚀 **Live Preview Available**: [Click here to try the application](https://g-commerce-simple.vercel.app/) 🎉
+🚀 **Live Preview Available**: [Click here to try the application](https://g-commerce-front-web-no-framework.vercel.app/) 🎉
 
 A simple web application for an e-commerce system, built only with HTML, JavaScript, and Bootstrap. No frameworks were used. This project consumes the Spring Boot REST API available at [G-commerce backend](https://github.com/gussttaav/g-commerce-springboot-api).
 
@@ -70,7 +70,7 @@ This project was developed for educational and learning purposes, serving as an 
 
 2. Clone this repository:
 ```bash
-git clone https://github.com/gussttaav/g-commerce-front-web-no-framework
+git clone https://github.com/gussttaav/g-commerce-front-web-no-framework.git
 cd g-commerce-front-web-no-framework
 ```
 
@@ -99,7 +99,7 @@ The image for this application is built and pushed to Docker Hub on every push t
   - Docker image: `gussttaav/g-commerce-frontend`
   
 - Backend API
-  - Repository: [Backend Repository](https://github.com/gussttaav/springboot-projects/tree/gestion-tienda)
+  - Repository: [Backend Repository](https://github.com/gussttaav/g-commerce-springboot-api.git)
   - Docker image: `gussttaav/g-commerce-backend`
   - API Documentation: http://localhost:8080/swagger-ui.html
 
