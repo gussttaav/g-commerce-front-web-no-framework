@@ -34,7 +34,7 @@ class ProductService {
         searchText = '',
         authenticated = false
     } = {}) {
-        return ApiService.get('/productos/listar', {
+        return ApiService.get('/productos', {
             status,
             page,
             size,
@@ -54,7 +54,7 @@ class ProductService {
      * @returns {Promise<Object>} Created product
      */
     static async createProduct(productData) {
-        return ApiService.post('/productos/crear', productData);
+        return ApiService.post('/productos', productData);
     }
 
     /**
@@ -68,7 +68,7 @@ class ProductService {
      * @returns {Promise<Object>} Updated product
      */
     static async updateProduct(productId, productData) {
-        return ApiService.put(`/productos/actualizar/${productId}`, productData);
+        return ApiService.put(`/productos/${productId}`, productData);
     }
 
     /**

@@ -156,7 +156,6 @@ class AuthController {
             
             // Clear form and switch to login view
             document.getElementById('register-form').reset();
-            toggleForms();
             
             // Show success message in login form
             const loginAlert = document.getElementById('loginAlert');

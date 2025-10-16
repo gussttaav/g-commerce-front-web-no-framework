@@ -186,18 +186,7 @@ class AuthService {
      * @returns {Promise} - Registration response
      */
     static async register(userData) {
-        return ApiService.post('/usuarios/registro', userData, false);
-    }
-
-    /**
-     * Updates user profile
-     * Makes authenticated API call to update profile
-     * Requires valid auth token
-     * @param {Object} profileData - Profile update data
-     * @returns {Promise} - Update response
-     */
-    static async updateProfile(profileData) {
-        return ApiService.put('/usuarios/perfil', profileData);
+        return ApiService.post('/usuarios', { ...userData, rol: 'USER' }, false);
     }
 
     /**
@@ -210,7 +199,7 @@ class AuthService {
      * @returns {Promise<void>}
      */
     static async changePassword(passwordData) {
-        await ApiService.put('/usuarios/password', passwordData);
+        await ApiService.patch('/usuarios/me', passwordData);
         // Note: After password change, user should login again with new password
     }
 }

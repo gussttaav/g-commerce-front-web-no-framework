@@ -144,6 +144,28 @@ class ApiService {
     }
 
     /**
+     * Makes a PATCH request to the API
+     * @param {string} endpoint - API endpoint
+     * @param {Object} data - Request body
+     * @param {boolean} requireAuth - Whether authentication is required
+     * @returns {Promise<Object|null>} API response or null if empty response
+     */
+    static async patch(endpoint, data, requireAuth = true) {
+        const url = this.BASE_URL + endpoint;
+        const response = await this.makeRequest(
+            url,
+            {
+                method: 'PATCH',
+                body: JSON.stringify(data)
+            },
+            requireAuth
+        );
+
+        // Handle empty responses
+        return await this.handleEmptyResponse(response);
+    }
+
+    /**
      * Makes a DELETE request to the API
      * @param {string} endpoint - API endpoint
      * @param {boolean} requireAuth - Whether authentication is required

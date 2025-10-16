@@ -19,7 +19,7 @@ class UserService {
      * @returns {Promise<Object>} User profile data
      */
     static async getProfile() {
-        return ApiService.get('/usuarios/perfil');
+        return ApiService.get('/usuarios/me');
     }
 
     /**
@@ -32,7 +32,7 @@ class UserService {
      * @returns {Promise<Object>} Updated profile
      */
     static async updateProfile(profileData) {
-        return ApiService.put('/usuarios/perfil', profileData);
+        return ApiService.patch('/usuarios/me', profileData);
     }
 
     /**
@@ -46,7 +46,7 @@ class UserService {
      * @returns {Promise<Object>} Paginated list of users
      */
     static async listUsers(params = {}) {
-        return ApiService.get('/usuarios/admin/listar', params);
+        return ApiService.get('/usuarios', params);
     }
 
     /**
@@ -60,7 +60,7 @@ class UserService {
      * @returns {Promise<Object>} Created user
      */
     static async createAdminUser(userData) {
-        return ApiService.post('/usuarios/admin/registro', { ...userData, rol: 'ADMIN' });
+        return ApiService.post('/usuarios', { ...userData, rol: 'ADMIN' });
     }
 
     /**
@@ -75,7 +75,7 @@ class UserService {
      * @returns {Promise<void>}
      */
     static async changeRole(userId, newRole) {
-        return ApiService.put(`/usuarios/admin/change-role?userId=${userId}&newRole=${newRole}`);
+        return ApiService.patch(`/usuarios/${userId}/role`, { rol: newRole });
     }
 }
 

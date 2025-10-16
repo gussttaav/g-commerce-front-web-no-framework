@@ -21,7 +21,7 @@ export class PurchaseService {
      * @returns {Promise} Purchase history data
      */
     static async getPurchaseHistory(params = {}) {
-        return ApiService.get('/compras/listar', params);
+        return ApiService.get('/compras', params);
     }
 
     /**
@@ -42,6 +42,6 @@ export class PurchaseService {
             }))
         };
 
-        return ApiService.post('/compras/nueva', purchaseData);
+        return ApiService.post('/compras', purchaseData);
     }
 } 
