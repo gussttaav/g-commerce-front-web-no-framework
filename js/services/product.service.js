@@ -29,12 +29,12 @@ class ProductService {
         status = 'ACTIVE',
         page = 0,
         size = 10,
-        sort = 'nombre',
+        sort = 'name',
         direction = 'ASC',
         searchText = '',
         authenticated = false
     } = {}) {
-        return ApiService.get('/productos', {
+        return ApiService.get('/products', {
             status,
             page,
             size,
@@ -54,7 +54,7 @@ class ProductService {
      * @returns {Promise<Object>} Created product
      */
     static async createProduct(productData) {
-        return ApiService.post('/productos', productData);
+        return ApiService.post('/products', productData);
     }
 
     /**
@@ -68,7 +68,7 @@ class ProductService {
      * @returns {Promise<Object>} Updated product
      */
     static async updateProduct(productId, productData) {
-        return ApiService.put(`/productos/${productId}`, productData);
+        return ApiService.put(`/products/${productId}`, productData);
     }
 
     /**
@@ -83,7 +83,7 @@ class ProductService {
     static async toggleStatus(product, isActive) {
         return this.updateProduct(product.id, {
             ...product,
-            activo: isActive
+            active: isActive
         });
     }
 }

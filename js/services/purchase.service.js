@@ -21,7 +21,7 @@ export class PurchaseService {
      * @returns {Promise} Purchase history data
      */
     static async getPurchaseHistory(params = {}) {
-        return ApiService.get('/compras', params);
+        return ApiService.get('/purchases', params);
     }
 
     /**
@@ -36,12 +36,12 @@ export class PurchaseService {
      */
     static async createPurchase(products) {
         const purchaseData = {
-            productos: products.map(item => ({
-                productoId: item.id,
-                cantidad: item.quantity
+            products: products.map(item => ({
+                productId: item.id,
+                quantity: item.quantity
             }))
         };
 
-        return ApiService.post('/compras', purchaseData);
+        return ApiService.post('/purchases', purchaseData);
     }
 } 

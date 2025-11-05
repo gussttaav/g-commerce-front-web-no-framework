@@ -80,7 +80,7 @@ class UserComponent {
     async loadProfile() {
         try {
             const profile = await UserService.getProfile();
-            document.getElementById('profileName').value = profile.nombre;
+            document.getElementById('profileName').value = profile.name;
             document.getElementById('profileEmail').value = profile.email;
         } catch (error) {
             UiUtils.showError('Error loading profile: ' + error.message);
@@ -100,15 +100,15 @@ class UserComponent {
         event.preventDefault();
         
         const profileData = {
-            nombre: document.getElementById('profileName').value,
-            nuevoEmail: document.getElementById('profileEmail').value
+            name: document.getElementById('profileName').value,
+            newEmail: document.getElementById('profileEmail').value
         };
 
         try {
             await UserService.updateProfile(profileData);
             UiUtils.showSuccess('Profile updated successfully!');
-            localStorage.setItem('userEmail', profileData.nuevoEmail);
-            document.getElementById('userEmail').textContent = profileData.nombre;
+            localStorage.setItem('userEmail', profileData.newEmail);
+            document.getElementById('userEmail').textContent = profileData.name;
         } catch (error) {
             UiUtils.showError('Error updating profile: ' + error.message);
         }
@@ -192,10 +192,10 @@ class UserComponent {
             toggleButton.addEventListener('click', () => this.toggleRole(user.id, user.rol));
 
             row.innerHTML = `
-                <td>${user.nombre}</td>
+                <td>${user.name}</td>
                 <td>${user.email}</td>
-                <td>${user.rol}</td>
-                <td>${new Date(user.fechaCreacion).toLocaleString()}</td>
+                <td>${user.role}</td>
+                <td>${new Date(user.creationDate).toLocaleString()}</td>
                 <td></td>
             `;
             row.querySelector('td:last-child').appendChild(toggleButton);
@@ -225,7 +225,7 @@ class UserComponent {
      */
     async saveUser() {
         const userData = {
-            nombre: document.getElementById('userName').value,
+            name: document.getElementById('userName').value,
             email: document.getElementById('newUserEmail').value,
             password: document.getElementById('userPassword').value
         };

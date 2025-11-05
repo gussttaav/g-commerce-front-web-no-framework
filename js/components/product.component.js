@@ -21,12 +21,12 @@ class ProductComponent {
         
         // Initialize pagination for admin view
         this.adminPagination = new PaginationUtils();
-        this.adminPagination.sortField = 'nombre';
+        this.adminPagination.sortField = 'name';
         this.adminPagination.onPageChange = () => this.loadProducts(this.getProductStatusFilter());
         
         // Initialize pagination for user view
         this.userPagination = new PaginationUtils();
-        this.userPagination.sortField = 'nombre';
+        this.userPagination.sortField = 'name';
         this.userPagination.onPageChange = () => this.loadProducts(this.getProductStatusFilter());
         
         this.initializeEventListeners();
@@ -316,10 +316,10 @@ class ProductComponent {
             card.innerHTML = `
                 <div class="card h-100">
                     <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">${product.nombre}</h5>
-                        <p class="card-text flex-grow-1">${product.descripcion || 'No description available'}</p>
+                        <h5 class="card-title">${product.name}</h5>
+                        <p class="card-text flex-grow-1">${product.description || 'No description available'}</p>
                         <div class="d-flex justify-content-between align-items-center mt-3">
-                            <h6 class="price-tag mb-0">$${product.precio.toFixed(2)}</h6>
+                            <h6 class="price-tag mb-0">$${product.price.toFixed(2)}</h6>
                             <div class="input-group input-group-sm"">
                                 <button class="btn btn-outline-secondary quantity-btn" data-action="decrease">-</button>
                                 <input type="number" class="form-control text-center quantity-input" value="1" min="1" max="99" readonly>
@@ -368,14 +368,14 @@ class ProductComponent {
         this.products.forEach(product => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${product.nombre}</td>
-                <td>${product.descripcion || 'No description'}</td>
-                <td>$${product.precio}</td>
+                <td>${product.name}</td>
+                <td>${product.description || 'No description'}</td>
+                <td>$${product.price}</td>
                 <td>
                     <div class="form-check form-switch">
                         <input type="checkbox" class="form-check-input status-toggle" 
                                data-product-id="${product.id}"
-                               ${product.activo ? 'checked' : ''}>
+                               ${product.active ? 'checked' : ''}>
                     </div>
                 </td>
                 <td>
@@ -422,9 +422,9 @@ class ProductComponent {
             if (product) {
                 title.textContent = 'Edit Product';
                 document.getElementById('productId').value = product.id;
-                document.getElementById('productName').value = product.nombre;
-                document.getElementById('productDescription').value = product.descripcion || '';
-                document.getElementById('productPrice').value = product.precio;
+                document.getElementById('productName').value = product.name;
+                document.getElementById('productDescription').value = product.description || '';
+                document.getElementById('productPrice').value = product.price;
             }
         } else {
             title.textContent = 'Add Product';
@@ -445,17 +445,17 @@ class ProductComponent {
     async saveProduct() {
         const productId = document.getElementById('productId').value;
         const productData = {
-            nombre: document.getElementById('productName').value,
-            descripcion: document.getElementById('productDescription').value,
-            precio: parseFloat(document.getElementById('productPrice').value),
-            activo: true
+            name: document.getElementById('productName').value,
+            description: document.getElementById('productDescription').value,
+            price: parseFloat(document.getElementById('productPrice').value),
+            active: true
         };
 
         try {
             if (productId) {
                 const existingProduct = this.products.find(p => p.id === parseInt(productId));
                 if (existingProduct) {
-                    productData.activo = existingProduct.activo;
+                    productData.active = existingProduct.active;
                 }
                 await ProductService.updateProduct(productId, productData);
             } else {
@@ -542,7 +542,7 @@ class ProductComponent {
 
         try {
             cart.addProduct(product, quantity);
-            UiUtils.showSuccess(`Added ${quantity} ${product.nombre} to cart`);
+            UiUtils.showSuccess(`Added ${quantity} ${product.name} to cart`);
             quantityInput.value = '1'; // Reset quantity
         } catch (error) {
             UiUtils.showError(error.message);

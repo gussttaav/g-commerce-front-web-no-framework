@@ -130,7 +130,7 @@ class CartComponent {
     calculateTotal() {
         let total = 0;
         this.selectedProducts.forEach(item => {
-            total += item.precio * item.quantity;
+            total += item.price * item.quantity;
         });
         return total;
     }
@@ -161,8 +161,8 @@ class CartComponent {
         this.selectedProducts.forEach((item, productId) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${item.nombre}</td>
-                <td>$${item.precio}</td>
+                <td>${item.name}</td>
+                <td>$${item.price}</td>
                 <td>
                     <div class="input-group input-group-sm" style="width: 120px">
                         <button class="btn btn-outline-secondary quantity-decrease" 
@@ -174,7 +174,7 @@ class CartComponent {
                                 data-product-id="${productId}">+</button>
                     </div>
                 </td>
-                <td>$${(item.precio * item.quantity).toFixed(2)}</td>
+                <td>$${(item.price * item.quantity).toFixed(2)}</td>
                 <td>
                     <button class="btn btn-sm btn-danger remove-product" 
                             data-product-id="${productId}">

@@ -148,7 +148,7 @@ class AuthController {
 
         try {
             const userData = {
-                nombre: document.getElementById('reg-nombre').value,
+                name: document.getElementById('reg-nombre').value,
                 email: document.getElementById('reg-email').value,
                 password: document.getElementById('reg-password').value
             };

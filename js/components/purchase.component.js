@@ -15,7 +15,7 @@ import { PaginationUtils } from '../utils/pagination.utils.js';
 class PurchaseComponent {
     constructor() {
         this.pagination = new PaginationUtils();
-        this.pagination.sortField = 'fecha';
+        this.pagination.sortField = 'date';
         this.pagination.onPageChange = () => this.loadPurchases();
         this.initializeEventListeners();
     }
@@ -95,11 +95,11 @@ class PurchaseComponent {
         purchases.forEach(purchase => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${new Date(purchase.fecha).toLocaleString()}</td>
+                <td>${new Date(purchase.date).toLocaleString()}</td>
                 <td>
                     <ul class="list-unstyled">
-                        ${purchase.productos.map(prod => 
-                            `<li>${prod.productoNombre} x ${prod.cantidad} - $${prod.subtotal}</li>`
+                        ${purchase.products.map(prod => 
+                            `<li>${prod.productName} x ${prod.quantity} - $${prod.subtotal}</li>`
                         ).join('')}
                     </ul>
                 </td>
@@ -131,8 +131,8 @@ class PurchaseComponent {
             itemDiv.className = 'mb-2';
             itemDiv.innerHTML = `
                 <div class="d-flex justify-content-between">
-                    <span>${item.nombre} x ${item.quantity}</span>
-                    <span>$${(item.precio * item.quantity).toFixed(2)}</span>
+                    <span>${item.name} x ${item.quantity}</span>
+                    <span>$${(item.price * item.quantity).toFixed(2)}</span>
                 </div>
             `;
             detailsContainer.appendChild(itemDiv);

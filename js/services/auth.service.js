@@ -51,17 +51,17 @@ class AuthService {
      * @private
      */
     static setAuthData(authResponse) {
-        const { usuario, token, refreshToken, expiresIn, refreshExpiresIn } = authResponse;
+        const { user, token, refreshToken, expiresIn, refreshExpiresIn } = authResponse;
         
         // Store tokens
         localStorage.setItem('authToken', `Bearer ${token}`);
         localStorage.setItem('refreshToken', refreshToken);
         
         // Store user data
-        localStorage.setItem('userEmail', usuario.email);
-        localStorage.setItem('userRole', usuario.rol);
-        localStorage.setItem('userName', usuario.nombre);
-        localStorage.setItem('userId', usuario.id);
+        localStorage.setItem('userEmail', user.email);
+        localStorage.setItem('userRole', user.role);
+        localStorage.setItem('userName', user.name);
+        localStorage.setItem('userId', user.id);
         
         // Store token expiration timestamps
         const accessTokenExpiry = Date.now() + (expiresIn * 1000);
@@ -186,7 +186,7 @@ class AuthService {
      * @returns {Promise} - Registration response
      */
     static async register(userData) {
-        return ApiService.post('/usuarios', { ...userData, rol: 'USER' }, false);
+        return ApiService.post('/users', { ...userData, rol: 'USER' }, false);
     }
 
     /**
@@ -199,7 +199,7 @@ class AuthService {
      * @returns {Promise<void>}
      */
     static async changePassword(passwordData) {
-        await ApiService.patch('/usuarios/me', passwordData);
+        await ApiService.patch('/users/me', passwordData);
         // Note: After password change, user should login again with new password
     }
 }
